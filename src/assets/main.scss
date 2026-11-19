@@ -1,0 +1,103 @@
+@import "./base.css";
+
+/* #app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-weight: normal;
+}
+
+a,
+.green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+  padding: 3px;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    display: flex;
+    place-items: center;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 2rem;
+  }
+} */
+
+.el-header {
+  height: 85px !important;
+}
+$spacer: 1rem; // Base unit (16px)
+$sizes: (
+  0: 0,
+  1: (
+    $spacer * 0.25,
+  ),
+  // 4px
+  2: (
+      $spacer * 0.5,
+    ),
+  // 8px
+  3: $spacer,
+  // 16px
+  4: (
+      $spacer * 1.5,
+    ),
+  // 24px
+  5: (
+      $spacer * 3,
+    ), // 48px
+);
+
+$sides: (
+  t: "top",
+  b: "bottom",
+  l: "left",
+  r: "right",
+);
+
+@each $size-key, $size-val in $sizes {
+  // All sides (.m-0, .m-1...)
+  .m-#{$size-key} {
+    margin: $size-val !important;
+  }
+
+  // Horizontal (.mx-1) and Vertical (.my-1)
+  .mx-#{$size-key} {
+    margin-left: $size-val !important;
+    margin-right: $size-val !important;
+  }
+  .my-#{$size-key} {
+    margin-top: $size-val !important;
+    margin-bottom: $size-val !important;
+  }
+
+  // Individual sides (.mt-1, .mb-1...)
+  @each $side-key, $side-val in $sides {
+    .m#{$side-key}-#{$size-key} {
+      margin-#{$side-val}: $size-val !important;
+    }
+  }
+}
+// Special case for auto centering
+.m-auto {
+  margin: auto !important;
+}
+.mx-auto {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.my-auto {
+  margin-top: auto !important;
+  margin-bottom: auto !important;
+}
