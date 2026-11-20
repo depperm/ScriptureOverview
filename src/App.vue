@@ -34,6 +34,7 @@ const primaryActiveTab = ref("search");
 const inputValue = ref("");
 const inputVisible = ref(false);
 const InputRef = ref<InputInstance>();
+const settings = ref()
 
 const orderOptions = [
   {
@@ -144,7 +145,7 @@ const activeChapter = computed(
         name="search"
         class="ml-2">
         <el-row :gutter="20">
-          <el-col :span="6">
+          <el-col :span="5">
             <el-form-item
               label="Book Order"
               label-position="top">
@@ -205,12 +206,29 @@ const activeChapter = computed(
             </el-form-item>
           </el-col>
         </el-row>
-        <el-main>
-          <book-overview
-            v-for="book in books"
-            :key="book"
-            :book="scriptureStore.bookOfMormon[book]"></book-overview>            
-        </el-main>
+        <el-row :gutter="20">
+          <el-col :span="19">
+            <book-overview
+              v-for="book in books"
+              :key="book"
+              :book="scriptureStore.bookOfMormon[book]"></book-overview>
+          </el-col>
+          <el-col :span="4">
+            <div class="sticky-box extra-top">
+              <el-collapse v-model="settings">
+                <el-collapse-item
+                  title="Color Palette"
+                  name="1">
+                  <div v-for="(_,coloridx) in utilStore.colorThemes[utilStore.chosenTheme]">
+                    <el-color-picker v-model="utilStore.colorThemes[utilStore.chosenTheme][coloridx]" />{{ searchStore.input[coloridx] ||  '-' }}
+                  </div>
+                  <div>
+                  </div>
+                </el-collapse-item>
+              </el-collapse>
+            </div></el-col
+          >
+        </el-row>
       </el-tab-pane>
       <el-tab-pane
         label="Read"
@@ -325,6 +343,10 @@ const activeChapter = computed(
   position: fixed;
   top: 5rem;
   padding: 1rem;
+  width: 16%;
+}
+.extra-top {
+  top: 10rem !important;
 }
 /* header {
   line-height: 1.5;

@@ -47,7 +47,7 @@ const searchResults = computed(() => {
         {{ book.title }}
       </div>
     </el-col>
-    <el-col :span="15">
+    <el-col :span="16">
       <el-row v-if="areSearchTerms" :gutter="searchStore.graphSpacing">
         <template
           v-for="(chapter, idx) in scriptureStore.bookOfMormon[book.title]

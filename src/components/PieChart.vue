@@ -2,6 +2,9 @@
 import type { IResult } from "@/interfaces";
 import { computed, ref } from "vue";
 import ScriptureRef from "./ScriptureRef.vue";
+import { useUtilsStore } from "@/stores/util.ts";
+
+const utilStore = useUtilsStore();
 
 interface Props {
   items?: IResult[];
@@ -13,22 +16,6 @@ const { items = [], size = 100, chapter } = defineProps<Props>();
 const visible = ref(false);
 const tooltipContent = ref<{ title: string; verses: string[] }>();
 const triggerRef = ref<HTMLElement | null>(null);
-// https://hexcolor.ie/random-color-generator/
-const colorPalette = [
-  "#e30cf0",
-  "#ff9ed7",
-  "#051366",
-  "#8aec16",
-  "#d61d37",
-  "#057da1",
-  "#00a5f7",
-  "#ba906c",
-  "#6013b1",
-  "#f07d14",
-  "#d61d37",
-  "#84fff6",
-  "#ecae40",
-];
 // Math.floor(Math.random() * 100) + 1
 
 const polarToCartesian = (cx: number, cy: number, angleInDegrees: number) => {
@@ -77,7 +64,7 @@ const slices = computed<
         value: items[0]!.value,
         verses: items[0]!.verses?.map((verse) => verse.reference) || [],
         fullCircle: true,
-        color: colorPalette[0] ?? "#000000",
+        color: utilStore.colorThemes[utilStore.chosenTheme][0] ?? "#000000",
       },
     ];
   }
@@ -114,7 +101,7 @@ const slices = computed<
       value: item.value,
       verses: item.verses?.map((verse) => verse.reference) || [],
       path,
-      color: colorPalette[index % colorPalette.length] ?? "#000000",
+      color: utilStore.colorThemes[utilStore.chosenTheme][index % utilStore.colorThemes[utilStore.chosenTheme].length],//colorPalette[index % colorPalette.length] ?? "#000000",
       fullCircle: false,
     };
   });

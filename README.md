@@ -45,7 +45,7 @@ npm run build
 
 - [ ] dark/light/+ theme toggle (top)
 - [ ] theme for pie chart colors
-  - [ ] display theme to results (menu?)
+  - [x] display theme to results (menu?)
   - [ ] have a few themes
   - [ ] option to edit themes
   - [ ] option to create themes
@@ -57,10 +57,10 @@ npm run build
   - [x] TG link (if not add, link to official)
   - [ ] bible link (if not add, link to official,...maybe option for translation)
 - [ ] edit scriptures
-  - [ ] add tag
+  - [x] add tag
   - [ ] add notes/highlights
   - [ ] add official footnotes to json
-  - [ ] save to file
+  - [x] save to file
 - [x] search shows result word (for regex/partial-in parenthesis next to verse)
 - [ ] add option for opacity in pie charts, depends on total result count
 - [ ] add more
