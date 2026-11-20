@@ -1,15 +1,35 @@
 <script setup lang="ts">
-// import rawBom from "./bom.json" with { type: "json" };
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed, onUnmounted, watch } from "vue";
 import { useSearchStore } from "./stores/search";
 import { useScriptureStore } from "./stores/scripture";
+import { useUtilsStore } from "./stores/util";
 import BookOverview from "./components/BookOverview.vue";
+import ScriptureViewer from "./components/ScriptureViewer.vue";
 import { bomBooks } from "./constant.ts";
+import { type BomBook } from "./interfaces.ts";
+import { emitter } from "./eventBus.ts";
 
 const searchStore = useSearchStore();
 const scriptureStore = useScriptureStore();
+const utilStore = useUtilsStore();
 
+const menuRef = ref()
+
+watch(
+  () => utilStore.selection,
+  (selection) => {
+    const bookIndex = String(
+      bomBooks.indexOf(selection.book) + 1
+    )
+
+    menuRef.value?.open(bookIndex)
+  },
+  { deep: true, immediate: true }
+)
+
+const chapterContent = ref<string[]>([]);
 const scriptOrder = ref<keyof typeof orderMap>("normal");
+const primaryActiveTab = ref("search");
 
 const orderOptions = [
   {
@@ -26,7 +46,7 @@ const orderOptions = [
   },
 ];
 
-const orderMap: Record<string, Array<(typeof bomBooks)[number]>> = {
+const orderMap = {
   normal: [...bomBooks],
   translated: [...bomBooks.slice(7), ...bomBooks.slice(0, 7)],
   chronological: [
@@ -34,22 +54,49 @@ const orderMap: Record<string, Array<(typeof bomBooks)[number]>> = {
     ...bomBooks.slice(0, 13),
     bomBooks[14]!, // Moroni
   ],
-};
+} satisfies Record<string, BomBook[]>;
 
 onMounted(() => {
   // Adds the class to the <html> tag
   document.documentElement.classList.add("dark");
+  loadChapter(bomBooks[0]!, 0);
+
+  emitter.on("readVerse", () => {
+    primaryActiveTab.value = "read";
+  });
 });
+onUnmounted(() => {
+  emitter.off("readVerse", () => {});
+});
+
+const loadChapter = (book: BomBook, chapterIndex: number, verses=[-1]) => {
+  // console.log(book, chapterIndex);
+  utilStore.selection = { book, chapter: chapterIndex, verses };
+  chapterContent.value =
+    scriptureStore.bookOfMormon[book].content[chapterIndex] ?? ([] as string[]);
+};
+
+const books = computed(() => {
+  return orderMap[scriptOrder.value] as BomBook[];
+});
+const activeChapter = computed(
+  () => `${utilStore.selection.book}-${utilStore.selection.chapter}`
+)
+
 </script>
 
 <template>
   <el-container>
     <el-header>
       <h1>Book of Mormon Overview</h1>
+      
     </el-header>
-    <el-tabs tab-position="right">
+    <el-tabs
+      tab-position="right"
+      v-model="primaryActiveTab">
       <el-tab-pane
         label="Search"
+        name="search"
         class="ml-2">
         <el-row :gutter="20">
           <el-col :span="6">
@@ -115,12 +162,53 @@ onMounted(() => {
         </el-row>
         <el-main>
           <book-overview
-            v-for="book in orderMap[scriptOrder]"
+            v-for="book in books"
             :key="book"
             :book="scriptureStore.bookOfMormon[book]"></book-overview>
         </el-main>
       </el-tab-pane>
-      <el-tab-pane label="Read"></el-tab-pane>
+      <el-tab-pane
+        label="Read"
+        name="read">
+        <!-- {{ selection }} -->
+        <el-row :gutter="8">
+          <el-col :span="3">
+            <el-menu
+              :default-active="activeChapter"
+              ref="menuRef">
+              <el-sub-menu
+                v-for="(book, index) in books"
+                :key="book"
+                :index="String(index + 1)">
+                <template #title>{{ book }}</template>
+                <el-menu-item
+                  v-for="(_, cidx) in scriptureStore.bookOfMormon[book]
+                    .content"
+                  :key="cidx"
+                  :index="`${book}-${cidx}`"
+                  @click="loadChapter(book, cidx)">
+                  Chapter {{ cidx + 1 }}
+                </el-menu-item>
+              </el-sub-menu>
+            </el-menu>
+          </el-col>
+          <el-col
+            :span="15"
+            v-if="utilStore.selection.chapter >= 0">
+            <!-- {{ chapterContent }} -->
+            <scripture-viewer
+              v-for="(verses, verse) in scriptureStore.bookOfMormon[
+                utilStore.selection.book
+              ].content[utilStore.selection.chapter]"
+              :key="verse"
+              :book="utilStore.selection.book"
+              :chapter="utilStore.selection.chapter"
+              :active="utilStore.selection.verses.includes(verse)"
+              :verse="verse"></scripture-viewer>
+            HERE
+          </el-col>
+        </el-row>
+      </el-tab-pane>
     </el-tabs>
   </el-container>
 </template>

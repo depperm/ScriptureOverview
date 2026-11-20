@@ -1,3 +1,6 @@
+import { bomBooks } from "./constant.ts";
+
+export type BomBook = (typeof bomBooks)[number];
 export interface IVerseMatch {
   reference: string;
   occurrences: number;

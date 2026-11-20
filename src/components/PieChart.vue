@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import type { IResult } from "@/interfaces";
+import type { BomBook, IResult } from "@/interfaces";
+import { useUtilsStore } from "@/stores/util";
 import { computed, ref } from "vue";
+import { emitter } from "@/eventBus";
 
+const utilsStore = useUtilsStore();
 interface Props {
   items?: IResult[];
   size?: number;
@@ -11,7 +14,7 @@ interface Props {
 const { items = [], size = 100, chapter } = defineProps<Props>();
 const visible = ref(false);
 const tooltipText = ref("");
-const tooltipContent = ref<{title:string, verses:string[]}>()
+const tooltipContent = ref<{ title: string; verses: string[] }>();
 const triggerRef = ref<HTMLElement | null>(null);
 // https://hexcolor.ie/random-color-generator/
 const colorPalette = [
@@ -52,12 +55,24 @@ const showTooltip = (
   slice: { title: string; verses: string[] },
 ) => {
   triggerRef.value = event.currentTarget as HTMLElement;
-  tooltipContent.value = slice
-  tooltipText.value = `<b>${slice.title}</b>:<br />${slice.verses.map(v=>`<span @click="clickVerse(v)">${v}</span>`).join("<br />")}`;
+  tooltipContent.value = slice;
+  tooltipText.value = `<b>${slice.title}</b>:<br />${slice.verses.map((v) => `<span @click="clickVerse(v)">${v}</span>`).join("<br />")}`;
   visible.value = true;
 };
 const clickVerse = (verse: string) => {
   console.log("Clicked verse:", verse);
+  const info = verse.match(/([\w\s]+) (\d+):(\d+)/);
+  console.log(info);
+  if (info) {
+    utilsStore.selection = {
+      book: info[1] as BomBook,
+      chapter: parseInt(info[2] || "1") - 1,
+      verses: [parseInt(info[3] || "-1") - 1],
+    };
+    emitter.emit('readVerse')
+  }
+  console.log('here')
+  console.log(utilsStore.selection);
   // Implement your logic to handle the verse click event here
 };
 
@@ -87,8 +102,7 @@ const slices = computed<
       {
         title: items[0]!.title,
         value: items[0]!.value,
-        verses:
-          items[0]!.verses?.map((verse) => verse.reference) || [],
+        verses: items[0]!.verses?.map((verse) => verse.reference) || [],
         fullCircle: true,
         color: colorPalette[0] ?? "#000000",
       },
@@ -119,7 +133,7 @@ const slices = computed<
       "Z",
     ].join(" ");
 
-    console.log("###", startAngle, endAngle);
+    // console.log("###", startAngle, endAngle);
     startAngle = endAngle;
 
     return {

@@ -1,35 +1,39 @@
 import { defineStore } from "pinia";
 
-import { bomBooks } from "../constant.ts";
+import type { BomBook } from "@/interfaces";
 import rawBom from "../bom.json" with { type: "json" };
 
 export const useScriptureStore = defineStore("scripture", () => {
   // state
-  const bom = rawBom as Record<
-    (typeof bomBooks)[number],
-    {
-      title: (typeof bomBooks)[number];
-      content: string[][];
-      tags: string[][][];
-      notes: {
-        start: number;
-        end: number;
-        content: string[];
-        style?: string;
-      }[][][];
-      footnotes: {
-        start: number;
-        end: number;
-        tg: string[];
-        scriptures: string[];
-      }[][][];
-      link: {
-        start: number;
-        end: number;
-        scriptures: string[];
-      }[][][];
-    }
-  >;
+  type Note = {
+    start: number;
+    end: number;
+    content: string[];
+    style?: string;
+  };
+  type Footnote = {
+    start: number;
+    end: number;
+    tg: string[];
+    scriptures: string[];
+  };
+  type Link = {
+    start: number;
+    end: number;
+    scriptures: string[];
+  };
+  type BomData<T extends BomBook> = {
+    title: T;
+    content: string[][];
+    tags: string[][][];
+    notes: Note[][][];
+    footnotes: Footnote[][][];
+    link: Link[][][];
+  };
+  type Bom = {
+    [K in BomBook]: BomData<K>;
+  };
+  const bom = rawBom as Bom;
 
   return {
     bookOfMormon: bom,

@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref, watch } from "vue";
 
 import { bomBooks } from "../constant.ts";
+import type { BomBook } from "@/interfaces.ts";
 // import rawBom from "../bom.json" with { type: "json" };
 import { useScriptureStore } from "./scripture.ts";
 import type { IResult, IVerseMatch } from "@/interfaces.ts";
@@ -129,7 +130,7 @@ export const useSearchStore = defineStore("search", () => {
 
   const searchResults = computed(() => {
     let result = {} as Record<
-      (typeof bomBooks)[number],
+      BomBook,
       Record<string, IResult>
     >;
     for (let book of bomBooks) {

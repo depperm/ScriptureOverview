@@ -1,6 +1,6 @@
 # Scripture Overview
 
-This application is intended to be able to view where various words occur
+This application is intended to be able to view where various words occur. Currently only Book of Mormon shows.
 
 ## Recommended IDE Setup
 
@@ -43,6 +43,7 @@ npm run build
 
 ## TODO
 
+- dark/light/+ theme toggle (top)
 - theme for pie chart colors
   - assigned to state
   - have a few themes
