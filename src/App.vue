@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed, onUnmounted, watch } from "vue";
+import { onMounted, ref, computed, onUnmounted, watch, nextTick } from "vue";
 import { useSearchStore } from "./stores/search";
 import { useScriptureStore } from "./stores/scripture";
 import { useUtilsStore } from "./stores/util";
@@ -9,6 +9,7 @@ import { bomBooks } from "./constant.ts";
 import { type BomBook } from "./interfaces.ts";
 import { emitter } from "./eventBus.ts";
 import ScriptureRef from "./components/ScriptureRef.vue";
+import type { InputInstance } from "element-plus";
 
 const searchStore = useSearchStore();
 const scriptureStore = useScriptureStore();
@@ -29,6 +30,9 @@ watch(
 const chapterContent = ref<string[]>([]);
 const scriptOrder = ref<keyof typeof orderMap>("normal");
 const primaryActiveTab = ref("search");
+const inputValue = ref("");
+const inputVisible = ref(false);
+const InputRef = ref<InputInstance>();
 
 const orderOptions = [
   {
@@ -68,6 +72,20 @@ onUnmounted(() => {
   emitter.off("readVerse", () => {});
 });
 
+const showInput = () => {
+  inputVisible.value = true;
+  nextTick(() => {
+    InputRef.value!.input!.focus();
+  });
+};
+const handleInputConfirm = () => {
+  if (inputValue.value) {
+    //dynamicTags.value.push(inputValue.value)
+    //todo update tags in scriptureStore and save
+  }
+  inputVisible.value = false;
+  inputValue.value = "";
+};
 const loadChapter = (book: BomBook, chapterIndex: number, verses = [-1]) => {
   // console.log(book, chapterIndex);
   utilStore.selection = { book, chapter: chapterIndex, verses };
@@ -209,34 +227,62 @@ const activeChapter = computed(
               utilStore.selection.verses.length &&
               utilStore.selection.verses[0]! >= 0
             ">
-            {{ utilStore.selection.book }}
-            {{ utilStore.selection.chapter + 1 }}:{{
-              utilStore.selection.verses[0]! + 1
-            }}
-            <h4>Footnotes:</h4>
-            <ol>
-              <li
-                type="a"
-                v-for="foot in scriptureStore.bookOfMormon[
+            <div class="sticky-box">
+              {{ utilStore.selection.book }}
+              {{ utilStore.selection.chapter + 1 }}:{{
+                utilStore.selection.verses[0]! + 1
+              }}
+              <h4>Footnotes:</h4>
+              <ol>
+                <li
+                  type="a"
+                  v-for="foot in scriptureStore.bookOfMormon[
+                    utilStore.selection.book
+                  ]!.footnotes[utilStore.selection.chapter]![
+                    utilStore.selection.verses[0]!
+                  ]">
+                  <scripture-ref
+                    v-for="script in foot.scriptures"
+                    :key="script"
+                    :verse="script"
+                    :breaker="false" />
+                  <br v-if="foot.scriptures.length" />
+                  <template v-if="foot.tg.length">
+                    TG {{ foot.tg.join("; ") }}
+                  </template>
+                </li>
+              </ol>
+              <h4>Tags:</h4>
+              <el-tag
+                v-for="tag in scriptureStore.bookOfMormon[
                   utilStore.selection.book
-                ]!.footnotes[utilStore.selection.chapter]![
+                ]!.tags[utilStore.selection.chapter]![
                   utilStore.selection.verses[0]!
-                ]">
-                <scripture-ref
-                  v-for="script in foot.scriptures"
-                  :key="script"
-                  :verse="script"
-                  :breaker="false" />
-                <br v-if="foot.scriptures.length" />
-                <template v-if="foot.tg.length">
-                  TG {{ foot.tg.join("; ") }}
-                </template>
-              </li>
-            </ol>
-            <h4>Labels:</h4>
-
-            <h4>Notes:</h4>
-            {{ utilStore.selection.verses }}
+                ]"
+                :key="tag"
+                type="primary"
+                class="mr-1"
+                closable>
+                <!--@close="removeTag()"-->
+                {{ tag }}
+              </el-tag>
+              <el-input
+                v-if="inputVisible"
+                ref="InputRef"
+                v-model="inputValue"
+                class="w-20"
+                size="small"
+                @keyup.enter="handleInputConfirm"
+                @blur="handleInputConfirm" />
+              <el-button
+                v-else
+                class="button-new-tag"
+                size="small"
+                @click="showInput">
+                + New Tag
+              </el-button>
+              <h4>Notes:</h4>
+            </div>
           </el-col>
         </el-row>
       </el-tab-pane>
@@ -245,6 +291,11 @@ const activeChapter = computed(
 </template>
 
 <style scoped>
+.sticky-box {
+  position: fixed;
+  top: 5rem;
+  padding: 1rem;
+}
 /* header {
   line-height: 1.5;
 }
