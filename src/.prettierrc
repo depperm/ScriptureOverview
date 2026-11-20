@@ -1,5 +1,5 @@
 {
     "singleAttributePerLine": true,
     "bracketSameLine": true,
-    "htmlWhitespaceSensitivity": "ignore"
+    "htmlWhitespaceSensitivity": "strict"
 }

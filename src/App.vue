@@ -9,6 +9,7 @@ import { bomBooks } from "./constant.ts";
 import { type BomBook } from "./interfaces.ts";
 import { emitter } from "./eventBus.ts";
 import ScriptureRef from "./components/ScriptureRef.vue";
+import TgLink from "./components/TgLink.vue";
 import type { InputInstance } from "element-plus";
 
 const searchStore = useSearchStore();
@@ -92,6 +93,35 @@ const loadChapter = (book: BomBook, chapterIndex: number, verses = [-1]) => {
   chapterContent.value =
     scriptureStore.bookOfMormon[book].content[chapterIndex] ?? ([] as string[]);
 };
+const removeTag = (tag: string) => {
+  const { book, chapter, verses } = utilStore.selection;
+  const verseIndex = verses[0]!;
+  const tags =
+    scriptureStore.bookOfMormon[book].tags[chapter]![verseIndex] ??
+    ([] as string[]);
+  const tagIndex = tags.indexOf(tag);
+  if (tagIndex > -1) {
+    tags.splice(tagIndex, 1);
+  }
+  scriptureStore.bookOfMormon[book].tags[chapter]![verseIndex] = tags;
+  scriptureStore.saveJSON();
+};
+const addTag = () => {
+  const { book, chapter, verses } = utilStore.selection;
+  const verseIndex = verses[0]!;
+  const tags =
+    scriptureStore.bookOfMormon[book].tags[chapter]![verseIndex] ??
+    ([] as string[]);
+  if (!tags.includes(inputValue.value)) {
+    tags.push(inputValue.value);
+  }
+  scriptureStore.bookOfMormon[book].tags[chapter]![verseIndex] = tags;
+
+  inputValue.value = "";
+  inputVisible.value = false;
+
+  scriptureStore.saveJSON();
+};
 
 const books = computed(() => {
   return orderMap[scriptOrder.value] as BomBook[];
@@ -141,7 +171,7 @@ const activeChapter = computed(
                 tag-effect="dark">
                 <template #prefix>
                   <el-tooltip
-                    content="Enter a word, phrase, or [tag] and press 'Enter' to add to the search<ul><li>partial words search is supported, ie test will find testimony, testament, etc.</li><li>regex is also supported (single characters will act as normal characters)</li><li>searches are scoped to verses</li></ul>"
+                    content="Enter a word, phrase, or [tag] and press 'Enter' to add to the search<ul><li>partial words search is supported, ie test will find testimony, testament, etc.</li><li>regex is also supported (single characters will act as normal characters, don't recommend . instead [^ ] is preferred)</li><li>searches are scoped to verses</li></ul>"
                     placement="bottom"
                     raw-content>
                     <el-icon><InfoFilled /></el-icon>
@@ -179,7 +209,7 @@ const activeChapter = computed(
           <book-overview
             v-for="book in books"
             :key="book"
-            :book="scriptureStore.bookOfMormon[book]"></book-overview>
+            :book="scriptureStore.bookOfMormon[book]"></book-overview>            
         </el-main>
       </el-tab-pane>
       <el-tab-pane
@@ -248,7 +278,7 @@ const activeChapter = computed(
                     :breaker="false" />
                   <br v-if="foot.scriptures.length" />
                   <template v-if="foot.tg.length">
-                    TG {{ foot.tg.join("; ") }}
+                    TG <tg-link :tg-links="foot.tg"></tg-link>
                   </template>
                 </li>
               </ol>
@@ -262,8 +292,8 @@ const activeChapter = computed(
                 :key="tag"
                 type="primary"
                 class="mr-1"
+                @close="removeTag(tag)"
                 closable>
-                <!--@close="removeTag()"-->
                 {{ tag }}
               </el-tag>
               <el-input
@@ -272,8 +302,8 @@ const activeChapter = computed(
                 v-model="inputValue"
                 class="w-20"
                 size="small"
-                @keyup.enter="handleInputConfirm"
-                @blur="handleInputConfirm" />
+                @keyup.enter="addTag"
+                @blur="addTag" />
               <el-button
                 v-else
                 class="button-new-tag"

@@ -30,19 +30,20 @@ export const useSearchStore = defineStore("search", () => {
       scriptureStore.bookOfMormon[book].content.forEach(
         (chapter, chapterNum) => {
           chapter.forEach((verse, verseNum) => {
-            // [ { "title": "test", "value": 10, "verses": [ "1 Nephi 1:19", "1 Nephi 2:9", "1 Nephi 2:10", "1 Nephi 10:5", "1 Nephi 15:36", "1 Nephi 16:2", "1 Nephi 22:30", "1 Nephi 22:31" ], "book": "1 Nephi" } ]
-            const sanitizedTerm =
+            let sanitizedTerm =
               termToFind.length === 1
                 ? termToFind.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
                 : termToFind; // Escape special characters for regex
-            const count =
-              verse.match(new RegExp(sanitizedTerm, "gi"))?.length ?? 0;
+            sanitizedTerm = `(\\b[^ ]*${sanitizedTerm}[^ ]*\\b)` // for getting word it is a part of (test: testament, testified, etc)
+            const matches =
+              verse.match(new RegExp(sanitizedTerm, "gi"));
+            const count = matches?.length ?? 0
 
             if (count > 0) {
               totalCount += count;
               const verse: IVerseMatch = {
-                reference: `${book} ${chapterNum + 1}:${verseNum + 1}`,
-                occurrences: count,
+                reference: `${book} ${chapterNum + 1}:${verseNum + 1} (${matches!.join(', ')})`,
+                occurrences: count
               };
 
               verses.push(verse);

@@ -52,16 +52,16 @@ npm run build
 - [ ] view scriptures
   - [x] read
   - [x] view footnotes
-  - [ ] view labels
+  - [x] view tag
   - [ ] view notes
-  - [ ] TG link (if not add, link to official)
+  - [x] TG link (if not add, link to official)
   - [ ] bible link (if not add, link to official,...maybe option for translation)
 - [ ] edit scriptures
-  - [ ] add labels
+  - [ ] add tag
   - [ ] add notes/highlights
   - [ ] add official footnotes to json
   - [ ] save to file
-- [ ] search shows result word (for regex/partial-in parenthesis next to verse)
+- [x] search shows result word (for regex/partial-in parenthesis next to verse)
 - [ ] add option for opacity in pie charts, depends on total result count
 - [ ] add more
   - [ ] bible

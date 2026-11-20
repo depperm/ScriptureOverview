@@ -11,7 +11,8 @@ export const useScriptureStore = defineStore("scripture", () => {
     content: string[];
     style?: string;
   };
-  type Footnote = {// 1 nephi 1:13 has 2 word phrase
+  type Footnote = {
+    // 1 nephi 1:13 has 2 word phrase
     start?: number;
     end?: number;
     words: string;
@@ -36,7 +37,43 @@ export const useScriptureStore = defineStore("scripture", () => {
   };
   const bom = rawBom as Bom;
 
+  const saveJSON = async () => {
+    if ("showSaveFilePicker" in window) {
+      const handle = await (window as any).showSaveFilePicker({
+        suggestedName: "bom.json",
+        types: [
+          {
+            description: "JSON Files",
+            accept: {
+              "application/json": [".json"],
+            },
+          },
+        ],
+      });
+
+      const writable = await handle.createWritable();
+
+      await writable.write(JSON.stringify(bom, null, 2));
+
+      await writable.close();
+    } else {
+      const blob = new Blob([JSON.stringify(bom, null, 2)], {
+        type: "application/json",
+      });
+
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bom.json";
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+  };
+
   return {
     bookOfMormon: bom,
+    saveJSON,
   };
 });
