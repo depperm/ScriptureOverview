@@ -11,9 +11,10 @@ export const useScriptureStore = defineStore("scripture", () => {
     content: string[];
     style?: string;
   };
-  type Footnote = {
-    start: number;
-    end: number;
+  type Footnote = {// 1 nephi 1:13 has 2 word phrase
+    start?: number;
+    end?: number;
+    words: string;
     tg: string[];
     scriptures: string[];
   };

@@ -1999,6 +1999,7 @@
                     {
                         "start": 21,
                         "end": 25,
+                        "words": "born",
                         "tg": [
                             "Birthright"
                         ],
@@ -2007,6 +2008,7 @@
                     {
                         "start": 29,
                         "end": 35,
+                        "words": "goodly",
                         "tg": [],
                         "scriptures": [
                             "Proverbs 22:1"
@@ -2015,6 +2017,7 @@
                     {
                         "start": 36,
                         "end": 43,
+                        "words": "parents",
                         "tg": [
                             "Honoring Father and Mother"
                         ],

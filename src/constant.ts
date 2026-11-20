@@ -15,5 +15,6 @@ const bomBooks = [
   "Ether",
   "Moroni",
 ] as const;
+const alphabet = "abcdefghijklmnopqrstuvwxyz";
 
-export { bomBooks };
+export { bomBooks, alphabet };

@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import type { BomBook, IResult } from "@/interfaces";
-import { useUtilsStore } from "@/stores/util";
+import type { IResult } from "@/interfaces";
 import { computed, ref } from "vue";
-import { emitter } from "@/eventBus";
+import ScriptureRef from "./ScriptureRef.vue";
 
-const utilsStore = useUtilsStore();
 interface Props {
   items?: IResult[];
   size?: number;
@@ -13,7 +11,6 @@ interface Props {
 
 const { items = [], size = 100, chapter } = defineProps<Props>();
 const visible = ref(false);
-const tooltipText = ref("");
 const tooltipContent = ref<{ title: string; verses: string[] }>();
 const triggerRef = ref<HTMLElement | null>(null);
 // https://hexcolor.ie/random-color-generator/
@@ -42,38 +39,14 @@ const polarToCartesian = (cx: number, cy: number, angleInDegrees: number) => {
     y: cy + radius.value * Math.sin(radians),
   };
 };
-const listOfVerses = (term: string) => {
-  return items.map((result) => {
-    const verses = result.verses?.filter((loc) =>
-      loc.reference.includes(` ${chapter}:`),
-    );
-    return verses?.map((loc) => loc.reference).join(",\n");
-  });
-};
+
 const showTooltip = (
   event: MouseEvent,
   slice: { title: string; verses: string[] },
 ) => {
   triggerRef.value = event.currentTarget as HTMLElement;
   tooltipContent.value = slice;
-  tooltipText.value = `<b>${slice.title}</b>:<br />${slice.verses.map((v) => `<span @click="clickVerse(v)">${v}</span>`).join("<br />")}`;
   visible.value = true;
-};
-const clickVerse = (verse: string) => {
-  console.log("Clicked verse:", verse);
-  const info = verse.match(/([\w\s]+) (\d+):(\d+)/);
-  console.log(info);
-  if (info) {
-    utilsStore.selection = {
-      book: info[1] as BomBook,
-      chapter: parseInt(info[2] || "1") - 1,
-      verses: [parseInt(info[3] || "-1") - 1],
-    };
-    emitter.emit('readVerse')
-  }
-  console.log('here')
-  console.log(utilsStore.selection);
-  // Implement your logic to handle the verse click event here
 };
 
 const radius = computed(() => size / 2);
@@ -242,10 +215,15 @@ const isEmpty = computed(
       <template #content>
         <b>{{ tooltipContent?.title }}</b>
         <br />
-        <template v-for="verse in tooltipContent?.verses">
+        <scripture-ref
+          v-for="verse in tooltipContent?.verses"
+          :key="verse"
+          :verse="verse"
+          :breaker="true" />
+        <!-- <template v-for="verse in tooltipContent?.verses">
           <span @click="clickVerse(verse)">{{ verse }}</span>
           <br />
-        </template>
+        </template> -->
       </template>
     </el-tooltip>
   </el-col>

@@ -8,24 +8,23 @@ import ScriptureViewer from "./components/ScriptureViewer.vue";
 import { bomBooks } from "./constant.ts";
 import { type BomBook } from "./interfaces.ts";
 import { emitter } from "./eventBus.ts";
+import ScriptureRef from "./components/ScriptureRef.vue";
 
 const searchStore = useSearchStore();
 const scriptureStore = useScriptureStore();
 const utilStore = useUtilsStore();
 
-const menuRef = ref()
+const menuRef = ref();
 
 watch(
   () => utilStore.selection,
   (selection) => {
-    const bookIndex = String(
-      bomBooks.indexOf(selection.book) + 1
-    )
+    const bookIndex = String(bomBooks.indexOf(selection.book) + 1);
 
-    menuRef.value?.open(bookIndex)
+    menuRef.value?.open(bookIndex);
   },
-  { deep: true, immediate: true }
-)
+  { deep: true, immediate: true },
+);
 
 const chapterContent = ref<string[]>([]);
 const scriptOrder = ref<keyof typeof orderMap>("normal");
@@ -69,7 +68,7 @@ onUnmounted(() => {
   emitter.off("readVerse", () => {});
 });
 
-const loadChapter = (book: BomBook, chapterIndex: number, verses=[-1]) => {
+const loadChapter = (book: BomBook, chapterIndex: number, verses = [-1]) => {
   // console.log(book, chapterIndex);
   utilStore.selection = { book, chapter: chapterIndex, verses };
   chapterContent.value =
@@ -80,16 +79,14 @@ const books = computed(() => {
   return orderMap[scriptOrder.value] as BomBook[];
 });
 const activeChapter = computed(
-  () => `${utilStore.selection.book}-${utilStore.selection.chapter}`
-)
-
+  () => `${utilStore.selection.book}-${utilStore.selection.chapter}`,
+);
 </script>
 
 <template>
   <el-container>
     <el-header>
       <h1>Book of Mormon Overview</h1>
-      
     </el-header>
     <el-tabs
       tab-position="right"
@@ -182,8 +179,7 @@ const activeChapter = computed(
                 :index="String(index + 1)">
                 <template #title>{{ book }}</template>
                 <el-menu-item
-                  v-for="(_, cidx) in scriptureStore.bookOfMormon[book]
-                    .content"
+                  v-for="(_, cidx) in scriptureStore.bookOfMormon[book].content"
                   :key="cidx"
                   :index="`${book}-${cidx}`"
                   @click="loadChapter(book, cidx)">
@@ -204,8 +200,43 @@ const activeChapter = computed(
               :book="utilStore.selection.book"
               :chapter="utilStore.selection.chapter"
               :active="utilStore.selection.verses.includes(verse)"
-              :verse="verse"></scripture-viewer>
-            HERE
+              :verse="verse"
+              :detailed="true"></scripture-viewer>
+          </el-col>
+          <el-col
+            :span="5"
+            v-if="
+              utilStore.selection.verses.length &&
+              utilStore.selection.verses[0]! >= 0
+            ">
+            {{ utilStore.selection.book }}
+            {{ utilStore.selection.chapter + 1 }}:{{
+              utilStore.selection.verses[0]! + 1
+            }}
+            <h4>Footnotes:</h4>
+            <ol>
+              <li
+                type="a"
+                v-for="foot in scriptureStore.bookOfMormon[
+                  utilStore.selection.book
+                ]!.footnotes[utilStore.selection.chapter]![
+                  utilStore.selection.verses[0]!
+                ]">
+                <scripture-ref
+                  v-for="script in foot.scriptures"
+                  :key="script"
+                  :verse="script"
+                  :breaker="false" />
+                <br v-if="foot.scriptures.length" />
+                <template v-if="foot.tg.length">
+                  TG {{ foot.tg.join("; ") }}
+                </template>
+              </li>
+            </ol>
+            <h4>Labels:</h4>
+
+            <h4>Notes:</h4>
+            {{ utilStore.selection.verses }}
           </el-col>
         </el-row>
       </el-tab-pane>
