@@ -3,8 +3,10 @@ import type { IResult } from "@/interfaces";
 import { computed, ref } from "vue";
 import ScriptureRef from "./ScriptureRef.vue";
 import { useUtilsStore } from "@/stores/util.ts";
+import { useSearchStore } from "@/stores/search.ts";
 
 const utilStore = useUtilsStore();
+const searchStore = useSearchStore();
 
 interface Props {
   items?: IResult[];
@@ -47,16 +49,16 @@ const total = computed(() =>
 );
 // const total = computed(() => items.reduce((a, b) => a + b.value, 0));
 
-const slices = computed<
-  {
-    fullCircle: boolean;
-    title: string;
-    value: number;
-    color: string;
-    verses: string[];
-    path?: string;
-  }[]
->(() => {
+type PieSlice = {
+  fullCircle: boolean;
+  title: string;
+  value: number;
+  color: string;
+  verses: string[];
+  path?: string;
+};
+
+const slices = computed<PieSlice[]>(() => {
   if (items.length === 1) {
     return [
       {
@@ -101,7 +103,10 @@ const slices = computed<
       value: item.value,
       verses: item.verses?.map((verse) => verse.reference) || [],
       path,
-      color: utilStore.colorThemes[utilStore.chosenTheme][index % utilStore.colorThemes[utilStore.chosenTheme].length],//colorPalette[index % colorPalette.length] ?? "#000000",
+      color:
+        utilStore.colorThemes[utilStore.chosenTheme][
+          index % utilStore.colorThemes[utilStore.chosenTheme].length
+        ]!,
       fullCircle: false,
     };
   });
@@ -109,6 +114,17 @@ const slices = computed<
 const isEmpty = computed(
   () => items.length === 0 || (items && items[0]!.verses?.length === 0),
 );
+const getOpacity = (idx: number) => {
+  if (utilStore.opacity) {
+    return (
+      (items[idx]!.verses?.reduce((total, v) => total + v.occurrences, 0)! /
+        searchStore.totalCounts[items[idx]!.title]!) *
+      10
+    );
+  } else {
+    return 1;
+  }
+};
 </script>
 
 <template>
@@ -117,6 +133,10 @@ const isEmpty = computed(
     <br />
     {{ slices }}
     <br /> -->
+    <!-- {{ items[0]!.verses?.reduce((total,v)=>total+v.occurrences,0) }}
+    {{ items[0]!.verses?.reduce((total,v)=>total+v.occurrences,0)!/searchStore.totalCounts[items[0]!.title]! }} -->
+    <!-- <span v-if="items.length">{{ total/searchStore.totalCounts[items[0]!.title]! }}</span> -->
+
     <svg
       :viewBox="`0 0 ${size} ${size}`"
       :height="size"
@@ -183,12 +203,14 @@ const isEmpty = computed(
           :cy="radius"
           :r="radius"
           :fill="slice.color"
+          :fill-opacity="getOpacity(index)"
           @pointerenter="showTooltip($event, slice)"
           @pointerleave="visible = false" />
         <path
           v-else
           :d="slice.path"
           :fill="slice.color"
+          :fill-opacity="getOpacity(index)"
           @pointerenter="showTooltip($event, slice)"
           @pointerleave="visible = false" />
         <!-- </el-tooltip> -->

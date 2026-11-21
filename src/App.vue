@@ -34,7 +34,7 @@ const primaryActiveTab = ref("search");
 const inputValue = ref("");
 const inputVisible = ref(false);
 const InputRef = ref<InputInstance>();
-const settings = ref()
+const settings = ref();
 
 const orderOptions = [
   {
@@ -181,30 +181,6 @@ const activeChapter = computed(
               </el-input-tag>
             </el-form-item>
           </el-col>
-          <el-col :span="2">
-            <el-form-item
-              label="Graph Size"
-              label-position="top">
-              <el-input-number
-                name="graph size"
-                controls-position="right"
-                v-model="searchStore.graphSize"
-                :min="10"
-                :max="100" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="2">
-            <el-form-item
-              label="Graph Spacing"
-              label-position="top">
-              <el-input-number
-                name="graph spacing"
-                controls-position="right"
-                v-model="searchStore.graphSpacing"
-                :min="0"
-                :max="100" />
-            </el-form-item>
-          </el-col>
         </el-row>
         <el-row :gutter="20">
           <el-col :span="19">
@@ -214,20 +190,69 @@ const activeChapter = computed(
               :book="scriptureStore.bookOfMormon[book]"></book-overview>
           </el-col>
           <el-col :span="4">
-            <div class="sticky-box extra-top">
+            <br />
+            <div class="sticky-box">
               <el-collapse v-model="settings">
                 <el-collapse-item
                   title="Color Palette"
                   name="1">
-                  <div v-for="(_,coloridx) in utilStore.colorThemes[utilStore.chosenTheme]">
-                    <el-color-picker v-model="utilStore.colorThemes[utilStore.chosenTheme][coloridx]" />{{ searchStore.input[coloridx] ||  '-' }}
+                  <el-select
+                    v-model="utilStore.chosenTheme"
+                    placeholder="Theme"
+                    style="width: 240px">
+                    <el-option
+                      v-for="item in Object.keys(utilStore.colorThemes)"
+                      :key="item"
+                      :label="item"
+                      :value="item" />
+                  </el-select>
+                  <div
+                    v-for="(_, coloridx) in utilStore.colorThemes[
+                      utilStore.chosenTheme
+                    ]">
+                    <el-color-picker
+                      v-model="
+                        utilStore.colorThemes[utilStore.chosenTheme][coloridx]
+                      " />{{ searchStore.input[coloridx] || "-" }}
                   </div>
-                  <div>
-                  </div>
+                  <div> </div>
+                </el-collapse-item>
+                <el-collapse-item
+                  title="Chart Options"
+                  name="2">
+                  <el-switch v-model="utilStore.opacity" /> Opacity (based on
+                  total occurences)
+
+                  <el-form-item
+                    label="Graph Size"
+                    label-position="top">
+                    <el-input-number
+                      name="graph size"
+                      controls-position="right"
+                      v-model="searchStore.graphSize"
+                      :min="10"
+                      :max="100" />
+                  </el-form-item>
+                  <el-form-item
+                    label="Graph Spacing"
+                    label-position="top">
+                    <el-input-number
+                      name="graph spacing"
+                      controls-position="right"
+                      v-model="searchStore.graphSpacing"
+                      :min="0"
+                      :max="100" />
+                  </el-form-item>
+                </el-collapse-item>
+                <el-collapse-item
+                  title="Search Options"
+                  name="3">
+                  <el-switch v-model="utilStore.caseSensitive" /> Case Sensitive
+                  (will require re-searching terms)
                 </el-collapse-item>
               </el-collapse>
-            </div></el-col
-          >
+            </div>
+          </el-col>
         </el-row>
       </el-tab-pane>
       <el-tab-pane
@@ -333,6 +358,32 @@ const activeChapter = computed(
             </div>
           </el-col>
         </el-row>
+      </el-tab-pane>
+      <el-tab-pane
+        label="Info"
+        name="info">
+        Sources
+        <ul>
+          <li
+            ><a
+              href="https://www.gutenberg.org/ebooks/17"
+              target="_"
+              >Book of Mormon</a
+            >
+            <ul>
+              <li
+                >Referenced
+                <a
+                  href="https://www.churchofjesuschrist.org/bc/content/shared/content/english/pdf/scriptures/approved-adjustments_eng.pdf"
+                  target="_"
+                  >Summary of Approved Adjustments for the 2013 Edition of the
+                  Scriptures</a
+                >
+                (probably missed some)</li
+              >
+            </ul>
+          </li>
+        </ul>
       </el-tab-pane>
     </el-tabs>
   </el-container>

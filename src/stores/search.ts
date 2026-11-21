@@ -6,10 +6,12 @@ import type { BomBook } from "@/interfaces.ts";
 // import rawBom from "../bom.json" with { type: "json" };
 import { useScriptureStore } from "./scripture.ts";
 import type { IResult, IVerseMatch } from "@/interfaces.ts";
+import { useUtilsStore } from "./util.ts";
 
 export const useSearchStore = defineStore(
   "search",
   () => {
+    const utilStore = useUtilsStore();
     const scriptureStore = useScriptureStore();
     // settings
     const graphSize = ref<number>(100);
@@ -22,6 +24,8 @@ export const useSearchStore = defineStore(
 
     const termResults = ref<IResult[][]>([]);
     const tagResults = ref<IResult[][]>([]);
+
+    // const totalCounts =ref<number[]>([])
 
     const termSearch = (termToFind: string) => {
       const lastIndex = termResults.value.length - 1;
@@ -37,7 +41,12 @@ export const useSearchStore = defineStore(
                   ? termToFind.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
                   : termToFind; // Escape special characters for regex
               sanitizedTerm = `(\\b[^ ]*${sanitizedTerm}[^ ]*\\b)`; // for getting word it is a part of (test: testament, testified, etc)
-              const matches = verse.match(new RegExp(sanitizedTerm, "gi"));
+              const matches = verse.match(
+                new RegExp(
+                  sanitizedTerm,
+                  `g${utilStore.caseSensitive ? "" : "i"}`,
+                ),
+              );
               const count = matches?.length ?? 0;
 
               if (count > 0) {
@@ -103,7 +112,10 @@ export const useSearchStore = defineStore(
         tagResults.value = [];
       } else if (newValue.length === oldValue.length + 1) {
         // ADD to search
-        const lastItem = input.value[input.value.length - 1]!.toLowerCase();
+        let lastItem = input.value[input.value.length - 1]!;
+        if (!utilStore.caseSensitive) {
+          lastItem = lastItem.toLowerCase();
+        }
         if (lastItem.startsWith("[") && lastItem.endsWith("]")) {
           tagItems.value.push(lastItem);
           tagResults.value.push([]);
@@ -117,7 +129,10 @@ export const useSearchStore = defineStore(
       } else if (newValue.length > oldValue.length) {
         // PAGE RELOAD WITH MULTIPLE PERSISTED INPUT
         for (const item of input.value) {
-          const normalized = item.toLowerCase();
+          let normalized = item;
+          if (!utilStore.caseSensitive) {
+            normalized = normalized.toLowerCase();
+          }
 
           if (normalized.startsWith("[") && normalized.endsWith("]")) {
             tagItems.value.push(normalized);
@@ -194,12 +209,29 @@ export const useSearchStore = defineStore(
       console.log(termResults.value);
       return result;
     });
+    const totalCounts = computed(() => {
+      const totals = {} as Record<string, number>;
+      for (const group of termResults.value) {
+        totals[group[0]!.title] = group.reduce(
+          (sum, book) => sum + book.value,
+          0,
+        );
+      }
+      for (const group of tagResults.value) {
+        totals[group[0]!.title] = group.reduce(
+          (sum, book) => sum + book.value,
+          0,
+        );
+      }
+      return totals;
+    });
 
     return {
       input,
       searchResults,
       graphSize,
       graphSpacing,
+      totalCounts,
     };
   },
   { persist: true },
